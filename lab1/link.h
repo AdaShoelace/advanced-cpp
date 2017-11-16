@@ -12,19 +12,19 @@ class Link
     public:
         Link();
         virtual ~Link() = default;
-        T* next()
+        T* Next()
         {
             T* ret = this->pNext; 
             return ret;
         }
 
-        T* prev()
+        T* Prev()
         {
             T* ret = this->pPrev;
             return ret;
         }
 
-        const T* insertAfter(T* toInsert)
+        const T* InsertAfter(T* toInsert)
         {
             T* temp = this->pNext;
             this->pNext = toInsert;
@@ -34,7 +34,7 @@ class Link
             return toInsert;
         }
 
-        T* insertBefore(T* toInsert)
+        T* InsertBefore(T* toInsert)
         {
             T* temp = this->pPrev;
             this->pPrev = toInsert;
@@ -44,7 +44,7 @@ class Link
             return toInsert;
         }
 
-        T* deleteAfter()
+        T* DeleteAfter()
         {
             T* temp = this->pNext; 
             T* newNext = temp->pNext;
@@ -56,7 +56,7 @@ class Link
         }
 
         template<typename Arg>
-            T* findNext(const Arg* searchFor)
+            T* FindNext(const Arg* searchFor)
             {
                  
             }

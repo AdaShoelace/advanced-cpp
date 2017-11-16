@@ -1,5 +1,5 @@
-#include "Link.hpp"
-#include "List.hpp"
+#include "link.h"
+#include "list.h"
 #include "TestDLL.h"
 
 class Node :public Link<Node> {

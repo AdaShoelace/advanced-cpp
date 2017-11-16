@@ -10,42 +10,42 @@ class List : public Link<T>
     
     public:
         List();
-        T* first() const
+        T* First() const
         {
             return this->next(); 
         }
 
-        T* last() const
+        T* Last() const
         {
             return this->prev();     
         }
 
-        T* pushFront(T* item)
+        T* PushFront(T* item)
         {
             this->insertAfter(item); 
             return item;
         }
 
-        T* popFront()
+        T* PopFront()
         {
         
         }
 
-        T* pushBack(T* item)
+        T* PushBack(T* item)
         {
             this->insertAfter(item);
             return item;
         }
 
         template<typename Arg>
-            T* findFirst(const Arg& searchFor) { return findNext(searchFor); }
+            T* FindFirst(const Arg& searchFor) { return findNext(searchFor); }
 
         friend std::ostream& operator<<(std::ostream& cout, List& list) 
         {
             return list.print(cout);
         }
 
-        void check() const
+        void Check() const
         {
         
         }
@@ -58,7 +58,7 @@ class Node : public Link<Node>
 {
     public:
         Node(float val) : val(val) {}
-        bool match(float rhs) { return val == rhs; }
+        bool Match(float rhs) { return val == rhs; }
 
     private:
         float val;
