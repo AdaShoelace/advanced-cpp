@@ -6,7 +6,7 @@ template<typename T>
 class List;
 
 template<typename T>
-class Link 
+class Link
 {
 
     public:
@@ -14,7 +14,7 @@ class Link
         virtual ~Link() = default;
         T* Next()
         {
-            T* ret = this->pNext; 
+            T* ret = this->pNext;
             return ret;
         }
 
@@ -46,7 +46,7 @@ class Link
 
         T* DeleteAfter()
         {
-            T* temp = this->pNext; 
+            T* temp = this->pNext;
             T* newNext = temp->pNext;
             this->pNext = temp->pNext;
             newNext->pPrev = this;
@@ -58,10 +58,26 @@ class Link
         template<typename Arg>
             T* FindNext(const Arg* searchFor)
             {
-                 
+                T* ret = nullptr;
+                for(Link* n = this->pNext; n != this; n = n->pNext)
+                {
+                    if(static_cast<T*>(this)->Match(searchFor))
+                    {
+                        ret = static_cast<T*>(this);
+                    }
+                }
+                return ret;
             }
 
-        virtual std::ostream& print(std::ostream& out) const { return out; }
+        virtual std::ostream& Print(std::ostream& out) const
+        {
+            Link* l = this;
+            do {
+                out << static_cast<T*>(this)->val << " ";
+                l = l->pNext;
+            } while(l != this);
+            return out;
+        }
 
     private:
         Link* pNext;

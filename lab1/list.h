@@ -2,8 +2,6 @@
 
 #include "link.h"
 
-
-
 template <typename T>
 class List : public Link<T> 
 {
@@ -26,7 +24,7 @@ class List : public Link<T>
             return item;
         }
 
-        T* PopFront()
+        T* PopFront() 
         {
         
         }
