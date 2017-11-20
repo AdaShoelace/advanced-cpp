@@ -10,44 +10,50 @@ class Link
 {
 
     public:
-        Link();
+        Link() = default;
+
         virtual ~Link() = default;
+        const T* Next() const
+        {
+            return static_cast<T*>(this->pNext);
+        }
+
+        const T* Prev() const
+        {
+            return static_cast<T*>(this->pPrev);
+        }
         T* Next()
         {
-            T* ret = this->pNext;
-            return ret;
+            return static_cast<T*>(this->pNext);
         }
 
         T* Prev()
         {
-            T* ret = this->pPrev;
-            return ret;
+            return static_cast<T*>(this->pPrev);
         }
 
-        const T* InsertAfter(T* toInsert)
+        T* InsertAfter(T* toInsert)
         {
-            T* temp = this->pNext;
-            this->pNext = toInsert;
             toInsert->pPrev = this;
-            toInsert->pNext = temp;
-            temp->pPrev = toInsert;
+            toInsert->pNext = this->pNext;
+            this->pNext->pPrev = toInsert;
+            this->pNext = toInsert;
             return toInsert;
         }
 
         T* InsertBefore(T* toInsert)
         {
-            T* temp = this->pPrev;
-            this->pPrev = toInsert;
             toInsert->pNext = this;
-            toInsert->pPrev = temp;
-            temp->pNext = toInsert;
+            this->pPrev->pNext = toInsert;
+            toInsert->pPrev = this->pPrev;
+            this->pPrev = toInsert;
             return toInsert;
         }
 
         T* DeleteAfter()
         {
-            T* temp = this->pNext;
-            T* newNext = temp->pNext;
+            auto temp = static_cast<T*>(this->pNext);
+            auto newNext = temp->pNext;
             this->pNext = temp->pNext;
             newNext->pPrev = this;
             temp->pNext = nullptr;
@@ -56,26 +62,26 @@ class Link
         }
 
         template<typename Arg>
-            T* FindNext(const Arg* searchFor)
+            T* FindNext(const Arg& searchFor)
             {
-                T* ret = nullptr;
-                for(Link* n = this->pNext; n != this; n = n->pNext)
+                T* ret = Next();
+                while(ret != this)
                 {
-                    if(static_cast<T*>(this)->Match(searchFor))
+                    if(ret->Match(searchFor))
                     {
-                        ret = static_cast<T*>(this);
+                        return ret;
                     }
+                    ret = ret->Next();
                 }
-                return ret;
+                return nullptr;
             }
 
         virtual std::ostream& Print(std::ostream& out) const
         {
-            Link* l = this;
-            do {
-                out << static_cast<T*>(this)->val << " ";
-                l = l->pNext;
-            } while(l != this);
+            if(this->pNext != this)
+                out << static_cast<const T*>(this)->data << " ";
+            else
+                out << "";
             return out;
         }
 

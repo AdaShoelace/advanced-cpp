@@ -1,63 +1,110 @@
 #pragma once
 
 #include "link.h"
+#include <cassert>
 
 template <typename T>
-class List : public Link<T> 
+class List : public Link<T>
 {
-    
+
     public:
-        List();
-        T* First() const
+        List()
         {
-            return this->next(); 
+            this->pNext = this;
+            this->pPrev = this;
         }
 
-        T* Last() const
+        ~List()
         {
-            return this->prev();     
+            auto temp = this->pNext;
+            while(temp != this)
+            {
+                auto nl = temp->pNext;
+                delete temp;
+                temp = nl;
+            }
+        }
+
+        const T* First() const
+        {
+            return this->Next();
+        }
+
+        const T* Last() const
+        {
+            return this->Prev();
+        }
+
+        T* First()
+        {
+            return this->Next();
+        }
+
+        T* Last()
+        {
+            return this->Prev();
         }
 
         T* PushFront(T* item)
         {
-            this->insertAfter(item); 
+            this->InsertAfter(item);
             return item;
-        }
-
-        T* PopFront() 
-        {
-        
         }
 
         T* PushBack(T* item)
         {
-            this->insertAfter(item);
+            this->InsertBefore(item);
             return item;
         }
 
-        template<typename Arg>
-            T* FindFirst(const Arg& searchFor) { return findNext(searchFor); }
+        T* PopFront()
+        {
+            if(this->pNext != this)
+                return this->DeleteAfter();
+            else
+                return nullptr;
+        }
 
-        friend std::ostream& operator<<(std::ostream& cout, List& list) 
+        template<typename Arg>
+            T* FindFirst(const Arg& searchFor) { return this->FindNext(searchFor); }
+
+        friend std::ostream& operator<<(std::ostream& cout, List& list)
         {
             return list.print(cout);
         }
 
         void Check() const
         {
-        
+            const Link<T> *node = this, *nextNode = this->pNext;
+            do {
+                assert(node->pNext == nextNode && nextNode->pPrev == node);
+                node = nextNode;
+                nextNode = nextNode->pNext;
+            } while (node != this);}
+
+        bool Invariant()
+        {
+            assert(this->pNext->pPrev == this &&
+                    this->pPrev->pNext == this);
+            return true;
         }
 
     private:
-        std::ostream& print(std::ostream& cout);
+        std::ostream& print(std::ostream& cout)
+        {
+            auto l = this->pNext;
+            do {
+                l->Print(cout);
+                l = l->pNext;
+            } while(l != this);
+            return cout;
+        }
 };
 
 class Node : public Link<Node>
 {
     public:
-        Node(float val) : val(val) {}
-        bool Match(float rhs) { return val == rhs; }
-
-    private:
-        float val;
+        Node(float data) : data(data) {}
+        bool Match(float rhs) { return data == rhs; }
+        float data;
 };
