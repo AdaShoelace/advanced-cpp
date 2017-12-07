@@ -1,6 +1,6 @@
 #include "WeakPtr.h"
 #include <utility>
-
+#include <algorithm>
 #include <iostream>
 
 template<typename T>
@@ -19,39 +19,53 @@ class SharedPtr {
             (*users)++;
         }
 
-        SharedPtr(SharedPtr&& obj)
+
+
+        SharedPtr(SharedPtr&& obj) : ptr(nullptr), users(new unsigned int{1})
         {
-            ptr = obj.get();
-            users = obj.users;
-            obj = nullptr;
+            this->swap(obj);
+        }
+
+        void swap(SharedPtr& obj)
+        {
+            std::swap(ptr, obj.ptr);
+            std::swap(users, obj.users);
         }
 
         //SharedPtr(WeakPtr<T> obj);
 
         ~SharedPtr()
         {
-            if(users == nullptr || *users == 1)
+            if(*users == 1)
             {
-                reset();
+                if(ptr) delete ptr;
+                delete users;
             }
             else
             {
                 (*users)--;
+                ptr = nullptr;
             }
         }
 
         SharedPtr& operator=(SharedPtr& obj)
         {
-            ptr = obj.get();
-            users = obj.users;
+            if(&obj != this)
+            {
+                ptr = obj.get();
+                users = obj.users;
+            }
             return *this;
         }
 
         SharedPtr& operator=(SharedPtr&& obj)
         {
-            ptr = obj.get();
-            users = obj.users;
-            obj.reset();
+            if(obj != this)
+            {
+                ptr = obj.get();
+                users = obj.users;
+                obj.reset();
+            }
             return *this;
         }
 
@@ -84,8 +98,14 @@ class SharedPtr {
 
         void reset()
         {
-            ptr = nullptr;
-            users = nullptr;
+            if(!ptr)
+                return;
+
+            if(*users == 1)
+            {
+                delete ptr;
+                ptr = nullptr;
+            }
         }
 
     private:
