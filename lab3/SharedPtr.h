@@ -1,7 +1,7 @@
 #include "WeakPtr.h"
 #include <utility>
 #include <algorithm>
-#include <iostream>
+#include <exception>
 
 template<typename T>
 class SharedPtr {
@@ -19,8 +19,6 @@ class SharedPtr {
             (*users)++;
         }
 
-
-
         SharedPtr(SharedPtr&& obj) : ptr(nullptr), users(new unsigned int{1})
         {
             this->swap(obj);
@@ -32,7 +30,7 @@ class SharedPtr {
             std::swap(users, obj.users);
         }
 
-        //SharedPtr(WeakPtr<T> obj);
+        //SharedPtr(WeakPtr<T> obj):
 
         ~SharedPtr()
         {
@@ -54,6 +52,7 @@ class SharedPtr {
             {
                 ptr = obj.get();
                 users = obj.users;
+                (*users)++;
             }
             return *this;
         }
