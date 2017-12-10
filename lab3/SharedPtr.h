@@ -3,56 +3,82 @@
 #include <algorithm>
 #include <exception>
 
+class RefCounter{
+    public:
+        RefCounter(unsigned int* users = new unsigned int{0},
+                unsigned int* weak_users = new unsigned int{0}) :
+            users(users),
+            weak_users(weak_users) {}
+
+        ~RefCounter()
+        {
+            delete users;
+            delete weak_users;
+        }
+
+        unsigned int* getUsers() {return users;}
+        unsigned int* getWeakUsers() {return weak_users;}
+
+        void increment_users() {(*users)++;}
+        void decrement_users() {if (*users > 0) (*users)--;}
+
+        void increment_weak_users() {(*weak_users)++;}
+        void decrement_weak_users() {if (*users > 0) (*weak_users)--;}
+    private:
+        unsigned int* users;
+        unsigned int* weak_users;
+};
+
 template<typename T>
 class SharedPtr {
     public:
-        SharedPtr() : ptr(nullptr), users(new unsigned int{1}){}
 
-        SharedPtr(std::nullptr_t nptr) : ptr(nptr), users(new unsigned int{1}){}
+        /*
+         * Constructors
+         */
+        SharedPtr() : ptr(nullptr), refs(new RefCounter()){}
+        SharedPtr(std::nullptr_t nptr) : ptr(nptr), refs(new RefCounter()){}
+        SharedPtr(T* obj) : ptr(obj), refs(new RefCounter(new unsigned int{1})){}
+        SharedPtr(WeakPtr<T> obj) {} //Some questions has arised
 
-        SharedPtr(T* obj) : ptr(obj), users(new unsigned int{1}){}
-
-        SharedPtr(const SharedPtr& obj)
+        SharedPtr(SharedPtr& obj)
         {
-            users = obj.users;
+            refs = obj.refs;
             ptr = obj.ptr;
-            (*users)++;
+            refs->increment_users();
         }
 
-        SharedPtr(SharedPtr&& obj) : ptr(nullptr), users(new unsigned int{1})
-        {
-            this->swap(obj);
-        }
-
-        void swap(SharedPtr& obj)
-        {
-            std::swap(ptr, obj.ptr);
-            std::swap(users, obj.users);
-        }
-
-        //SharedPtr(WeakPtr<T> obj):
+        SharedPtr(SharedPtr&& obj) : ptr(nullptr), refs(new RefCounter())
+    {
+        this->swap(obj);
+    }
 
         ~SharedPtr()
         {
-            if(*users == 1)
+            if(*(refs->getUsers()) <= 1)
             {
                 if(ptr) delete ptr;
-                delete users;
+                delete refs;
             }
             else
             {
-                (*users)--;
+                refs->decrement_users();
                 ptr = nullptr;
+                refs = nullptr;
             }
         }
 
+        /*
+         * Operators
+         */
         SharedPtr& operator=(SharedPtr& obj)
         {
-            if(&obj != this)
+            if(obj != *this)
             {
                 ptr = obj.get();
-                users = obj.users;
-                (*users)++;
+                refs->decrement_users();
+                refs = obj.refs;
+                refs->increment_users();
             }
             return *this;
         }
@@ -62,7 +88,7 @@ class SharedPtr {
             if(obj != this)
             {
                 ptr = obj.get();
-                users = obj.users;
+                refs = obj.refs;
                 obj.reset();
             }
             return *this;
@@ -78,36 +104,45 @@ class SharedPtr {
             return ptr == compare_to.ptr;
         }
 
-        operator bool() { return ptr != nullptr; }
-
         bool operator<(const SharedPtr& compare_to)
         {
             return ptr < compare_to.ptr;
         }
 
+        operator bool() { return ptr != nullptr; }
         bool operator<(std::nullptr_t nptr){ return this < nptr; }
-
         T& operator*() { return *ptr; }
-
         T* operator->() { return ptr; }
 
         T* get() { return ptr; }
-
-        bool unique(){ return *users == 1; }
+        bool unique(){ return (*(refs->getUsers())) == 1; }
 
         void reset()
         {
             if(!ptr)
                 return;
 
-            if(*users == 1)
+            if(*(refs->getUsers()) == 1)
             {
                 delete ptr;
                 ptr = nullptr;
+            }
+            else
+            {
+                refs->increment_users();
+                ptr = nullptr;
+                refs = new RefCounter();
             }
         }
 
     private:
         T* ptr;
-        unsigned int* users;
+        //unsigned int* users;
+        RefCounter* refs;
+
+        void swap(SharedPtr& obj)
+        {
+            std::swap(ptr, obj.ptr);
+            std::swap(refs, obj.refs);
+        }
 };

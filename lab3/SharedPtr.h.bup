@@ -1,0 +1,120 @@
+#include "WeakPtr.h"
+#include <utility>
+#include <algorithm>
+#include <exception>
+
+template<typename T>
+class SharedPtr {
+    public:
+
+        /*
+         * Constructors
+         */
+        SharedPtr() : ptr(nullptr), users(new unsigned int{1}) {}    //setting this 0 breaks the world!
+        SharedPtr(std::nullptr_t nptr) : ptr(nptr), users(new unsigned int{0}){}
+        SharedPtr(T* obj) : ptr(obj), users(new unsigned int{1}){}
+        SharedPtr(WeakPtr<T> obj) {}
+
+        SharedPtr(SharedPtr& obj)
+        {
+            users = obj.users;
+            ptr = obj.ptr;
+            (*users)++;
+        }
+
+        SharedPtr(SharedPtr&& obj) : ptr(nullptr), users(new unsigned int{1})
+        {
+            this->swap(obj);
+        }
+
+        ~SharedPtr()
+        {
+            if(*users <= 1)
+            {
+                if(ptr) delete ptr;
+                delete users;
+            }
+            else
+            {
+                (*users)--;
+                ptr = nullptr;
+                users = nullptr;
+            }
+        }
+
+        /*
+         * Operators
+         */
+        SharedPtr& operator=(SharedPtr& obj)
+        {
+            if(obj != *this)
+            {
+                ptr = obj.get();
+                if(users > 0) (*users)--;
+                users = obj.users;
+                (*users)++;
+            }
+            return *this;
+        }
+
+        SharedPtr& operator=(SharedPtr&& obj)
+        {
+            if(obj != this)
+            {
+                ptr = obj.get();
+                users = obj.users;
+                obj.reset();
+            }
+            return *this;
+        }
+
+        bool operator==(std::nullptr_t nptr) const
+        {
+            return ptr == nptr;
+        }
+
+        bool operator==(const SharedPtr& compare_to) const
+        {
+            return ptr == compare_to.ptr;
+        }
+
+        bool operator<(const SharedPtr& compare_to)
+        {
+            return ptr < compare_to.ptr;
+        }
+
+        bool operator<(std::nullptr_t nptr){ return this < nptr; }
+        operator bool() { return ptr != nullptr; }
+        T& operator*() { return *ptr; }
+        T* operator->() { return ptr; }
+
+        T* get() { return ptr; }
+        bool unique(){ return *users == 1; }
+
+        void reset()
+        {
+            if(!ptr)
+                return;
+
+            if(*users <= 1)
+            {
+                delete ptr;
+                ptr = nullptr;
+            }
+            else
+            {
+                ptr = nullptr;
+                users = new unsigned int{0};
+            }
+        }
+
+    private:
+        T* ptr;
+        unsigned int* users;
+
+        void swap(SharedPtr& obj)
+        {
+            std::swap(ptr, obj.ptr);
+            std::swap(users, obj.users);
+        }
+};
