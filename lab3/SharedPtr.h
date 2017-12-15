@@ -1,32 +1,37 @@
+#pragma once
 #include "WeakPtr.h"
 #include <utility>
 #include <algorithm>
 #include <exception>
+#include <iostream>
 
 class RefCounter{
     public:
-        RefCounter(unsigned int* users = new unsigned int{0},
-                unsigned int* weak_users = new unsigned int{0}) :
+        RefCounter(unsigned int users = 0,
+                unsigned int weak_users = 0) :
             users(users),
-            weak_users(weak_users) {}
+            weak_users(weak_users) {
+                std::cout << "Users" << users << " Weak-users" << weak_users << "\n";
+            }
 
         ~RefCounter()
         {
-            delete users;
-            delete weak_users;
         }
 
-        unsigned int* getUsers() {return users;}
-        unsigned int* getWeakUsers() {return weak_users;}
+        unsigned int getUsers() {return users;}
+        void setUsers(unsigned int value) {users = value;}
 
-        void increment_users() {(*users)++;}
-        void decrement_users() {if (*users > 0) (*users)--;}
+        unsigned int getWeakUsers() {return weak_users;}
+        void setWeakUsers(unsigned int value) {weak_users = value;}
 
-        void increment_weak_users() {(*weak_users)++;}
-        void decrement_weak_users() {if (*users > 0) (*weak_users)--;}
+        void increment_users() {users++;}
+        void decrement_users() {if (users > 0) users--;}
+
+        void increment_weak_users() {weak_users++;}
+        void decrement_weak_users() {if (weak_users > 0) weak_users--;}
     private:
-        unsigned int* users;
-        unsigned int* weak_users;
+        unsigned int users;
+        unsigned int weak_users;
 };
 
 template<typename T>
@@ -38,33 +43,26 @@ class SharedPtr {
          */
         SharedPtr() : ptr(nullptr), refs(new RefCounter()){}
         SharedPtr(std::nullptr_t nptr) : ptr(nptr), refs(new RefCounter()){}
-        SharedPtr(T* obj) : ptr(obj), refs(new RefCounter(new unsigned int{1})){}
-        SharedPtr(WeakPtr<T> obj) {} //Some questions has arised
-
-        SharedPtr(SharedPtr& obj)
-        {
-            refs = obj.refs;
-            ptr = obj.ptr;
-            refs->increment_users();
-        }
-
-        SharedPtr(SharedPtr&& obj) : ptr(nullptr), refs(new RefCounter())
-    {
-        this->swap(obj);
-    }
+        SharedPtr(T* obj) : ptr(obj), refs(new RefCounter(1)){}
+        //SharedPtr(WeakPtr<T> obj) {} //Some questions has arised
+        SharedPtr(SharedPtr& obj) : ptr(obj.ptr), refs(obj.refs) { refs->increment_users(); }
+        SharedPtr(SharedPtr&& obj) : ptr(nullptr), refs(new RefCounter()) { this->swap(obj); }
 
         ~SharedPtr()
         {
-            if(*(refs->getUsers()) <= 1)
+            if(refs != nullptr)
             {
-                if(ptr) delete ptr;
-                delete refs;
-            }
-            else
-            {
-                refs->decrement_users();
-                ptr = nullptr;
-                refs = nullptr;
+                if(refs->getUsers() <= 1)
+                {
+                    if(ptr != nullptr) delete ptr;
+                    delete refs;
+                }
+                else
+                {
+                    refs->decrement_users();
+                    ptr = nullptr;
+                    refs = nullptr;
+                }
             }
         }
 
@@ -85,10 +83,9 @@ class SharedPtr {
 
         SharedPtr& operator=(SharedPtr&& obj)
         {
-            if(obj != this)
+            if(obj != *this)
             {
-                ptr = obj.get();
-                refs = obj.refs;
+                swap(obj);
                 obj.reset();
             }
             return *this;
@@ -115,21 +112,22 @@ class SharedPtr {
         T* operator->() { return ptr; }
 
         T* get() { return ptr; }
-        bool unique(){ return (*(refs->getUsers())) == 1; }
+        bool unique(){ return refs->getUsers() == 1; }
 
         void reset()
         {
             if(!ptr)
                 return;
 
-            if(*(refs->getUsers()) == 1)
+            if(refs->getUsers() <= 1)
             {
                 delete ptr;
                 ptr = nullptr;
+                refs->setUsers(0);
             }
             else
             {
-                refs->increment_users();
+                refs->decrement_users();
                 ptr = nullptr;
                 refs = new RefCounter();
             }

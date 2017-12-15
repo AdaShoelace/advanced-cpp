@@ -1,54 +1,56 @@
 #include <iostream>
 #include "GCD.h"
+#include "mytrait.h"
+
 template<typename T>
 class Rational {
     public:
-        Rational(): nom(0), denom(1) {};
-        Rational(T nom):nom(nom), denom(1) {}
-        Rational(T nom, T denom): nom(nom), denom(denom) {
-            Reduce(nom, denom);
+        Rational(): p(0), q(1) {};
+        Rational(T p): p(p), q(1) {}
+        Rational(T p, T q): p(p), q(q) { Reduce(p, q); }
+        Rational(Rational<T>& rtal)
+        {
+            p = rtal.p;
+            q = rtal.q;
         }
 
-        T nom, denom;
+        T p, q;
+
         friend std::ostream& operator<< (std::ostream& cout, Rational<T> R)
         {
             cout << R.nom << '/' << R.denom;
             return cout;
         }
-
-        Rational operator+(const Rational rhs) const
+        
+        void operator+=(const Rational& rhs)
         {
-
+            long long temp = q;
+            p = (p * rhs.q) + (rhs.p * temp);
+            q = (q * rhs.q);
+            Reduce(p, q);
         }
 
+        //Operators
+        Rational& operator++()
+        {
+            p += q;
+            Reduce(p,q);
+            return *this;
+        }
+
+        Rational operator++(int)
+        {
+            Rational temp(*this);
+            operator++();
+            return temp;
+        }
+
+
     private:
-        template<typename Q>
-            int val_type(Q val)
-            {
-                return val_type<Q>();
-            }
-
-        template<typename Q>
-            int val_type()
-            {
-                return 0;
-            }
-
-        template<>
-            int val_type<short>()
-            {
-                return 1;
-            }
-
-        template <>
-            int val_type<int>()
-            {
-                return 2;
-            }
-
-        template <>
-            int val_type<long long>()
-            {
-                return 3;
-            }
 };
+
+template<typename L, typename R>
+Rational<typename RationalTrait<L,R>::fallback_type> operator+(const Rational<L> lhs, const Rational<R> rhs)
+{
+    Rational<typename RationalTrait<L,R>::fallback_type> temp(lhs.p, lhs.q);
+}
