@@ -1,5 +1,5 @@
 TARGET = RATIO
-SOURCES = main.cpp
+SOURCES = RatTest.cpp
 DIR_INCLUDE = include/
 DIR_BUILD = build/
 CC = clang++

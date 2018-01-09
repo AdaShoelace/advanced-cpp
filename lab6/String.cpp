@@ -1,4 +1,4 @@
-#include "String.h"
+#include "include/String.h"
 #include <cassert>
 #include <cstring>
 #include <iostream>
@@ -105,17 +105,18 @@ void String::shrink_to_fit()
 
 void String::resize(size_t n)
 {
-    char* temp = new char[n];
-    m_capacity = n;
-    for (size_t j = 0; j < m_size; ++j)
-        temp[j] = m_string[j];
-    for (size_t j = m_size; j < m_capacity; ++j)
-        temp[j] = char();
+    char* dest = new char[n];
+    std::memcpy(dest, m_string, n);
     delete[] m_string;
+    m_capacity = n;
+    if (n > m_size) {
+        for (size_t i = m_size; i < m_capacity; i++) {
+            dest[i] = char();
+        }
+    }
+    dest[m_capacity - 1] = '\0';
     m_size = n;
-    m_string = temp;
-    m_string[m_size - 1] = '\0';
-    invariant();
+    m_string = dest;
 }
 
 // Operators
@@ -208,4 +209,45 @@ String::~String()
         delete[] m_string;
     }
     m_string = nullptr;
+}
+
+// for iterators
+String::iterator String::begin()
+{
+    return iterator(&m_string[0]);
+}
+
+String::iterator String::end()
+{
+    return iterator(&m_string[size()]);
+}
+
+String::reverse_iterator String::rbegin()
+{
+    return reverse_iterator(&m_string[size()-1]);
+}
+
+String::reverse_iterator String::rend()
+{
+    return reverse_iterator(&m_string[-1]);
+}
+
+String::const_iterator String::cbegin()
+{
+    return const_iterator(&m_string[0]);
+}
+
+String::const_iterator String::cend()
+{
+    return const_iterator(&m_string[size()]);
+}
+
+String::const_reverse_iterator String::crbegin()
+{
+    return const_reverse_iterator(&m_string[size()-1]);
+}
+
+String::const_reverse_iterator String::crend()
+{
+    return const_reverse_iterator(&m_string[-1]);
 }

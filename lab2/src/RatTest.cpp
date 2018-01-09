@@ -9,6 +9,7 @@
 //using namespace std;
 
 #include <limits>
+#include <type_traits>
 
 #define VG
 
@@ -43,7 +44,7 @@ bool TestCompatibility() {
 
 #endif VG
 
-void TestFörGodkänt() {
+void TestG() {
 
     Rational<short> rs0, rs1(1), rs2(2, 1), rs3(3);
     Rational<int> ri0;
@@ -57,8 +58,8 @@ void TestFörGodkänt() {
     assert(rs1 == rs1);
     assert(rs2 == 2);
     assert(rs1 == rll1);
-    assert(rs1 == Rational<short>(rs1.nom, rs1.denom));
-    assert(rs1 == Rational<short>(-rs1.nom, -rs1.denom));
+    assert(rs1 == Rational<short>(rs1.p, rs1.q));
+    assert(rs1 == Rational<short>(-rs1.p, -rs1.q));
 
     //Tilldelas (=) från Tal dvs. rtal=tal;
     rs3 = Rint(13, 3);
@@ -94,7 +95,7 @@ void TestFörGodkänt() {
 }
 
 #ifdef VG
-void TestFörVälGodkänt() {
+void TestVG() {
 
     assert(TestAccuracy());
     assert(TestCompatibility());
@@ -106,4 +107,11 @@ void TestFörVälGodkänt() {
 }
 
 #endif
+
+int main() 
+{
+    TestG();
+    TestVG();
+    return 0;
+}
 

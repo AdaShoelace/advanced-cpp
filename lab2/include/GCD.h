@@ -2,8 +2,8 @@
 
 template<typename Tint>
 Tint GCD(Tint A, Tint B) {
-    A = abs(A);
-    B = abs(B);
+    A = std::abs(A);
+    B = std::abs(B);
     if (A < B)
         return GCD(B, A);
     while (B != 0) {

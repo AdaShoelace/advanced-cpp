@@ -1,5 +1,5 @@
 #pragma once
-
+#include "iterator.h"
 #include <iostream>
 
 class String {
@@ -11,6 +11,11 @@ private:
     void swap(String& rhs);
 
 public:
+    typedef forward_iterator<char> iterator;
+    typedef forward_iterator<const char> const_iterator;
+    typedef backward_iterator<char> reverse_iterator;
+    typedef backward_iterator<const char> const_reverse_iterator;
+
     String();
     String(const String& rhs);
     String(String&& rhs);
@@ -38,4 +43,15 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const String& rhs);
 
     ~String();
+
+    // for iterators
+    iterator begin();
+    iterator end();
+    reverse_iterator rbegin();
+    reverse_iterator rend();
+
+    const_iterator cbegin();
+    const_iterator cend();
+    const_reverse_iterator crbegin();
+    const_reverse_iterator crend();
 };
